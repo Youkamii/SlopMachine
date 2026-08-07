@@ -144,10 +144,12 @@ class Umbra implements GameInstance {
   resize(w: number, h: number) {
     this.w = w;
     this.h = h;
-    // Fit the level box into the viewport, letterboxed.
-    this.scale = Math.min(w / LEVEL_W, (h * 0.82) / LEVEL_H);
+    // Width-first, and anchored so the ground sits near the bottom of the
+    // viewport. Centring the level box left the ground floating mid-screen
+    // with dead space under it.
+    this.scale = Math.min(w / LEVEL_W, (h * 0.9) / LEVEL_H);
     this.offX = (w - LEVEL_W * this.scale) / 2;
-    this.offY = (h - LEVEL_H * this.scale) / 2;
+    this.offY = h - LEVEL_H * this.scale - h * 0.04;
   }
 
   private sx(x: number) {
@@ -447,6 +449,17 @@ class Umbra implements GameInstance {
     const s = this.sun;
     const FAR = 400;
     ctx.save();
+    // Clip to the playfield. Extruded shadow polygons run hundreds of units
+    // past the geometry, and without this they spill below the ground and
+    // off the bottom of the screen as loose black wedges.
+    ctx.beginPath();
+    ctx.rect(
+      this.sx(0),
+      this.sy(0),
+      LEVEL_W * this.scale,
+      (this.level.ground[0]?.y ?? LEVEL_H) * this.scale,
+    );
+    ctx.clip();
     ctx.fillStyle = SHADE;
     ctx.globalAlpha = 0.9;
 

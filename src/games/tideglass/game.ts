@@ -118,9 +118,11 @@ class Tideglass implements GameInstance {
   }
 
   private seedReef() {
-    const count = this.rng.int(3, 5);
+    // Enough roots to read as a reef on first paint. Three strands on an
+    // empty screen looks like a bug, not a garden.
+    const count = this.rng.int(9, 13);
     for (let i = 0; i < count; i++) {
-      const x = this.w * ((i + 0.5) / count) + this.rng.spread(this.w * 0.08);
+      const x = this.w * ((i + 0.5) / count) + this.rng.spread(this.w * 0.05);
       this.sprout(x, this.floorY);
     }
   }
@@ -150,8 +152,10 @@ class Tideglass implements GameInstance {
       this.hintFade = Math.max(0, this.hintFade - dt * 0.8);
     }
 
+    // Grows continuously whether or not you are pointing at anything — this
+    // is an aquarium, and an aquarium that only moves when touched is dead.
     this.growTimer += dt;
-    if (this.growTimer > 0.055) {
+    if (this.growTimer > 0.028) {
       this.growTimer = 0;
       this.grow();
     }
@@ -229,17 +233,20 @@ class Tideglass implements GameInstance {
 
       if (node.lumen > 0) this.pluck(node.y);
 
-      // Branch occasionally, from somewhere along the strand rather than the tip.
-      if (s.nodes.length > 8 && this.rng.bool(0.08) && this.strands.length < 26) {
+      // Branch often enough that the reef fills out rather than staying a
+      // handful of lonely stalks.
+      if (s.nodes.length > 6 && this.rng.bool(0.2) && this.strands.length < 60) {
         const from = s.nodes[this.rng.int(2, s.nodes.length - 2)];
         this.sprout(from.x, from.y);
       }
     }
 
-    // New shoots appear where a finger rests on the floor.
-    if (!grewAny && targets.length > 0 && this.strands.length < 30) {
+    // Nothing left growing anywhere: put down fresh roots so the reef keeps
+    // renewing itself instead of freezing once every strand tops out.
+    if (!grewAny && this.strands.length < 60) {
       const t = targets[0];
-      if (t.y > this.floorY - 40) this.sprout(t.x, this.floorY);
+      const x = t ? t.x + this.rng.spread(60) : this.rng.range(0, this.w);
+      this.sprout(clamp(x, 10, this.w - 10), this.floorY);
     }
   }
 

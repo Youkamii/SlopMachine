@@ -185,17 +185,19 @@ class Lodestone implements GameInstance {
           if (d > m.r * 2.4) continue;
           // Soft falloff — 1/r^2 makes the centre explode and reads as a bug.
           const falloff = clamp01(1 - d / (m.r * 2.4));
-          const force = m.strength * falloff * falloff * 950;
+          const force = m.strength * falloff * falloff * 2600;
           ax += (dx / d) * force;
           ay += (dy / d) * force;
         }
-        // Constant drift toward the goal keeps the river moving even on a
-        // blank canvas, so an empty level is never a dead screen.
+        // Baseline current toward the goal. This has to be strong enough to
+        // actually carry a particle across the screen against drag — the
+        // first pass used 34 and the stream simply stalled in a cloud at the
+        // emitter, which is not a river, it is a bug.
         const gxw = this.level.goal.x * this.w - wx;
         const gyw = this.level.goal.y * this.h - wy;
         const gd = Math.hypot(gxw, gyw) || 1;
-        ax += (gxw / gd) * 34;
-        ay += (gyw / gd) * 34;
+        ax += (gxw / gd) * 620;
+        ay += (gyw / gd) * 620;
 
         const idx = gy * GRID + gx;
         this.fx[idx] = ax;
@@ -341,8 +343,10 @@ class Lodestone implements GameInstance {
       this.plife[i] -= dt;
 
       this.sample(this.px[i], this.py[i], f);
-      this.pvx[i] = (this.pvx[i] + f.x * dt) * 0.985;
-      this.pvy[i] = (this.pvy[i] + f.y * dt) * 0.985;
+      // Light drag only. 0.985 per frame compounds to a near-total stop in
+      // about a second, which is what killed the stream.
+      this.pvx[i] = (this.pvx[i] + f.x * dt) * 0.997;
+      this.pvy[i] = (this.pvy[i] + f.y * dt) * 0.997;
       this.px[i] += this.pvx[i] * dt;
       this.py[i] += this.pvy[i] * dt;
 
