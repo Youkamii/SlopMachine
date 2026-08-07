@@ -242,4 +242,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 120,
   },
+  {
+    slug: "guessworks",
+    title: "Guessworks",
+    tagline: "A machine with a hidden rule. Feed it. Watch. Name the rule.",
+    description:
+      "A black box transforms a row of tokens by a rule you cannot see. You have a small budget of experiments, so the skill is not guessing — it is choosing inputs that cut the candidate space fastest. Every machine is verified solvable inside its budget before you see it, and the end screen shows exactly how efficiently your experiments narrowed things down.",
+    tags: ["deduction", "puzzle", "strategy"],
+    author: "alex",
+    difficulty: 3,
+    controls: {
+      desktop: "Click tokens to change them, RUN to test, then pick a rule.",
+      mobile: "Tap tokens to change them, RUN to test, then pick a rule.",
+    },
+    accent: "#c9e4f5",
+    bg: "#0d2a3f",
+    released: "2026-08-08",
+    sessionSeconds: 240,
+  },
 ];

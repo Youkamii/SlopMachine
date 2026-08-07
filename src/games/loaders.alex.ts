@@ -22,4 +22,5 @@ export const ALEX_LOADERS: Record<string, GameLoader> = {
   "the-tell": () => import("./the-tell/game"),
   umbra: () => import("./umbra/game"),
   tideglass: () => import("./tideglass/game"),
+  guessworks: () => import("./guessworks/game"),
 };
