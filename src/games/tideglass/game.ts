@@ -209,9 +209,11 @@ class Tideglass implements GameInstance {
         ay = lerp(-1, dy / len, pull);
       }
 
-      // Wander so growth never looks like a straight line to the cursor.
+      // Wander so growth never looks like a straight line to the cursor,
+      // but keep a standing upward bias so strands climb the water column.
       const n = noise2(tip.x * 0.004 + s.seed, tip.y * 0.004);
       ax += n * 0.55;
+      ay -= 0.7;
       const len = Math.hypot(ax, ay) || 1;
       const step = 7 + this.rng.range(-1.4, 1.4);
 
@@ -282,7 +284,9 @@ class Tideglass implements GameInstance {
         const drift =
           noise2(n.x * 0.003, n.y * 0.003 + this.time * 0.12) * 8 + sway * 4;
         n.x += vx + drift * dt;
-        n.y += vy + 2 * dt;
+        // Slight buoyancy, not gravity. Kelp is held up by the water; with a
+        // downward pull the whole reef collapses into a mat on the floor.
+        n.y += vy - 6 * dt;
 
         // Constraint back to the parent.
         const dx = n.x - p.x;
