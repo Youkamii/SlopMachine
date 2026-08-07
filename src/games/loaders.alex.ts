@@ -12,4 +12,5 @@ export const ALEX_LOADERS: Record<string, GameLoader> = {
   grazefield: () => import("./grazefield/game"),
   skipstone: () => import("./skipstone/game"),
   "by-heart": () => import("./by-heart/game"),
+  homerow: () => import("./homerow/game"),
 };

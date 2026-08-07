@@ -62,4 +62,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 90,
   },
+  {
+    slug: "homerow",
+    title: "Homerow",
+    tagline: "The keyboard is the arena. A key moves you to where it sits.",
+    description:
+      "The playfield is a QWERTY keyboard and pressing a key teleports you to that key's physical position — so SAD is a short safe hop and POLYGON is a sprint across the board. Keys arm and detonate; spelling a real word defuses every key it crosses. Reads physical key positions, so it plays the same on any layout.",
+    tags: ["word", "reflex", "arcade"],
+    author: "alex",
+    difficulty: 3,
+    controls: {
+      desktop: "Type. Any letter key jumps you to that key.",
+      mobile: "Tap keys on the drawn board — it is the same board.",
+    },
+    accent: "#5ce1e6",
+    bg: "#0d1424",
+    released: "2026-08-08",
+    sessionSeconds: 80,
+  },
 ];
