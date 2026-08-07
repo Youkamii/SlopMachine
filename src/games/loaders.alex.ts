@@ -10,4 +10,5 @@ import type { GameLoader } from "./loaders";
  */
 export const ALEX_LOADERS: Record<string, GameLoader> = {
   grazefield: () => import("./grazefield/game"),
+  skipstone: () => import("./skipstone/game"),
 };

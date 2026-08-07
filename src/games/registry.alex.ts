@@ -26,4 +26,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 75,
   },
+  {
+    slug: "skipstone",
+    title: "Skipstone",
+    tagline: "You are the bullet. The floor is the only thing that kills.",
+    description:
+      "Pull back and let go to fling yourself across the page. You get one dash, and the only way to get it back is to hit something — so there is no safe landing and a run is one unbroken chain. Every dash leaves ink behind, so the end of a run is a drawing of how you played it.",
+    tags: ["action", "physics", "arcade"],
+    author: "alex",
+    difficulty: 2,
+    controls: {
+      desktop: "Drag with the mouse and release. Pull back to aim.",
+      mobile: "Drag anywhere and let go.",
+    },
+    accent: "#d64000",
+    bg: "#efe9dc",
+    released: "2026-08-08",
+    sessionSeconds: 60,
+  },
 ];

@@ -107,7 +107,7 @@ export default function GameStage({ slug, title, accent, pixelated }: Props) {
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3 sm:p-4">
         <Link
           href="/"
-          className="tappable pointer-events-auto flex h-9 items-center gap-2 rounded-full bg-ink/70 px-3 font-mono text-[11px] uppercase tracking-[0.14em] text-fog backdrop-blur transition-colors hover:text-chalk"
+          className="tappable pointer-events-auto flex h-9 items-center gap-2 rounded-full bg-ink/85 px-3 font-mono text-[11px] uppercase tracking-[0.14em] text-fog backdrop-blur transition-colors hover:text-chalk"
           aria-label="Back to the catalog"
         >
           <span aria-hidden>←</span>
@@ -117,7 +117,7 @@ export default function GameStage({ slug, title, accent, pixelated }: Props) {
         <div className="pointer-events-auto flex items-center gap-2">
           <button
             onClick={toggleMute}
-            className="tappable flex h-9 w-9 items-center justify-center rounded-full bg-ink/70 font-mono text-[11px] text-fog backdrop-blur transition-colors hover:text-chalk"
+            className="tappable flex h-9 w-9 items-center justify-center rounded-full bg-ink/85 font-mono text-[11px] text-fog backdrop-blur transition-colors hover:text-chalk"
             aria-label={muted ? "Unmute" : "Mute"}
             aria-pressed={muted}
           >
