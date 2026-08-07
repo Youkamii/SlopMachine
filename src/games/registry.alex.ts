@@ -170,4 +170,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 200,
   },
+  {
+    slug: "foldscape",
+    title: "Foldscape",
+    tagline: "Do not walk to the goal. Fold the map until it is here.",
+    description:
+      "Drag across a crease and the sheet folds, physically overlapping tiles that were at opposite ends of the level. Floors merge, walls refuse. You reach the goal by making the map shorter rather than by crossing it. Every pair about to merge is shown in green or red while you drag, and every sheet is machine-verified solvable before you see it.",
+    tags: ["puzzle", "toy", "strategy"],
+    author: "alex",
+    difficulty: 3,
+    controls: {
+      desktop: "Drag across a crease to fold. Z undo, R reset.",
+      mobile: "Drag across a crease to fold.",
+    },
+    accent: "#e0563b",
+    bg: "#f2e2ce",
+    released: "2026-08-08",
+    sessionSeconds: 210,
+  },
 ];

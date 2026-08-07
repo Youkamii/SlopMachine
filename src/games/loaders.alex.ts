@@ -18,4 +18,5 @@ export const ALEX_LOADERS: Record<string, GameLoader> = {
   kessler: () => import("./kessler/game"),
   ostinato: () => import("./ostinato/game"),
   shunt: () => import("./shunt/game"),
+  foldscape: () => import("./foldscape/game"),
 };
