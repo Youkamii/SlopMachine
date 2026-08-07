@@ -431,51 +431,62 @@ class TheTell implements GameInstance {
     ctx.translate(x + pose.lean * facing * s, 0);
     ctx.fillStyle = SILHOUETTE;
 
-    // Coat / body
+    // Legs first, so the coat overlaps them rather than the other way round.
+    // The coat has to stop above the knee or the whole figure reads as a post.
+    const coatHem = groundY - 52 * s;
     ctx.beginPath();
-    ctx.moveTo(-20 * s, groundY);
-    ctx.lineTo(-16 * s - pose.coat * s * 0.4, shoulderY + 24 * s);
-    ctx.lineTo(-13 * s, shoulderY - pose.shoulder * s);
-    ctx.lineTo(13 * s, shoulderY - pose.shoulder * s * 0.4);
-    ctx.lineTo(17 * s + pose.coat * s * 0.6, shoulderY + 24 * s);
-    ctx.lineTo(21 * s + pose.coat * s, groundY);
+    ctx.moveTo(-10 * s, coatHem);
+    ctx.lineTo(-13 * s, groundY);
+    ctx.lineTo(-4 * s, groundY);
+    ctx.lineTo(-2 * s, coatHem);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(3 * s, coatHem);
+    ctx.lineTo(5 * s, groundY);
+    ctx.lineTo(14 * s, groundY);
+    ctx.lineTo(11 * s, coatHem);
     ctx.closePath();
     ctx.fill();
 
-    // Legs
-    ctx.fillRect(-11 * s, groundY - 46 * s, 8 * s, 46 * s);
-    ctx.fillRect(4 * s, groundY - 46 * s, 8 * s, 46 * s);
-
-    // Head
+    // Coat: wide shoulders tapering to a hem that flares with the coat tell.
     ctx.beginPath();
-    ctx.arc(0, shoulderY - headR - 4 * s - pose.shoulder * s * 0.2, headR, 0, TAU);
+    ctx.moveTo(-15 * s - pose.coat * s * 0.7, coatHem + 6 * s);
+    ctx.lineTo(-14 * s, shoulderY + 26 * s);
+    ctx.lineTo(-19 * s, shoulderY + 4 * s - pose.shoulder * s);
+    ctx.lineTo(0, shoulderY - 2 * s - pose.shoulder * s * 0.6);
+    ctx.lineTo(19 * s, shoulderY + 4 * s - pose.shoulder * s * 0.3);
+    ctx.lineTo(14 * s, shoulderY + 26 * s);
+    ctx.lineTo(16 * s + pose.coat * s, coatHem + 6 * s);
+    ctx.closePath();
     ctx.fill();
 
-    // Hat brim
-    ctx.fillRect(
-      -headR * 1.7, shoulderY - headR * 2 - 4 * s - pose.shoulder * s * 0.2,
-      headR * 3.4, 4.5 * s,
-    );
+    // Neck + head
+    const headY = shoulderY - headR - 2 * s - pose.shoulder * s * 0.2;
+    ctx.fillRect(-4 * s, headY, 8 * s, headR + 6 * s);
+    ctx.beginPath();
+    ctx.arc(0, headY, headR, 0, TAU);
+    ctx.fill();
 
-    // Gun arm — drops when drawn.
-    const armY = shoulderY + 18 * s;
+    // Hat: a crown plus a narrow brim. A bare wide bar reads as furniture.
+    const brimY = headY - headR * 0.55;
+    ctx.fillRect(-headR * 1.25, brimY, headR * 2.5, 3.5 * s);
+    ctx.fillRect(-headR * 0.72, brimY - headR * 0.75, headR * 1.44, headR * 0.8);
+
+    // Gun arm — hangs at rest, snaps level when drawn.
+    const armY = shoulderY + 16 * s;
     const twitch = pose.hand * s;
     ctx.save();
-    ctx.translate(facing * 14 * s, armY);
-    ctx.rotate(drawn ? facing * -1.1 : facing * (0.35 + twitch * 0.02));
-    ctx.fillRect(0, -4 * s, facing * 34 * s, 8 * s);
+    ctx.translate(facing * 15 * s, armY);
+    ctx.rotate(drawn ? facing * -1.35 : facing * (0.85 + twitch * 0.03));
+    ctx.fillRect(0, -4.5 * s, facing * 32 * s, 9 * s);
     ctx.restore();
 
     // Eye: only visible during a blink tell, as a bright flicker.
     if (pose.blink > 0) {
       ctx.fillStyle = HOT;
       ctx.beginPath();
-      ctx.arc(
-        facing * -5 * s,
-        shoulderY - headR - 5 * s,
-        2.6 * s,
-        0, TAU,
-      );
+      ctx.arc(facing * -6 * s, headY - 2 * s, 2.8 * s, 0, TAU);
       ctx.fill();
     }
 
