@@ -278,4 +278,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 180,
   },
+  {
+    slug: "metronaut",
+    title: "Metronaut",
+    tagline: "There is no jump. You change how fast the world runs.",
+    description:
+      "An endless runner whose only control is a tempo dial. Slowing down is safe and scores nothing — the multiplier is the square of tempo, and some gates only open at speed. The soundtrack is synthesised rather than sampled, so the dial bends its pitch with the world: crawling past a gate literally detunes the track downward.",
+    tags: ["rhythm", "action", "endless"],
+    author: "alex",
+    difficulty: 3,
+    controls: {
+      desktop: "Move the mouse up and down. Or W / S. That is the whole game.",
+      mobile: "Drag up to speed the world up.",
+    },
+    accent: "#00e5ff",
+    bg: "#0a0a12",
+    released: "2026-08-08",
+    sessionSeconds: 90,
+  },
 ];

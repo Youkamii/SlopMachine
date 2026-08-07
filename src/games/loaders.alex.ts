@@ -24,4 +24,5 @@ export const ALEX_LOADERS: Record<string, GameLoader> = {
   tideglass: () => import("./tideglass/game"),
   guessworks: () => import("./guessworks/game"),
   lodestone: () => import("./lodestone/game"),
+  metronaut: () => import("./metronaut/game"),
 };
