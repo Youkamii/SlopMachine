@@ -44,4 +44,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 60,
   },
+  {
+    slug: "by-heart",
+    title: "By Heart",
+    tagline: "A shape appears, then leaves. Draw it back.",
+    description:
+      "A glyph nobody has drawn before is written out in front of you, held for a moment, and taken away. Redraw it from memory in one unbroken stroke. Scoring ignores where and how big you drew it, keeps the tilt, and accepts a stroke drawn backwards — then shows you exactly which part of the shape you lost.",
+    tags: ["puzzle", "toy", "atmospheric"],
+    author: "alex",
+    difficulty: 2,
+    controls: {
+      desktop: "Hold the mouse button and draw in one stroke.",
+      mobile: "Draw with one finger without lifting.",
+    },
+    accent: "#e8a33d",
+    bg: "#17110c",
+    released: "2026-08-08",
+    sessionSeconds: 90,
+  },
 ];
