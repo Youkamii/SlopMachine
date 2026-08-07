@@ -38,46 +38,37 @@ const BAD = "#c8402f";
 
 interface LevelDef {
   rows: string[];
-  par: number;
 }
 
+/**
+ * Candidates, not a curriculum. Roughly half of any batch of hand-drawn fold
+ * puzzles turns out to be unsolvable — the first pass shipped six and the
+ * solver rejected three. So these are written freely and the BFS below
+ * decides which survive, and in what order.
+ */
 const LEVELS: LevelDef[] = [
-  { rows: ["P....G"], par: 1 },
-  { rows: ["P..#..G"], par: 2 },
-  {
-    rows: [
-      "P.....",
-      "......",
-      ".....G",
-    ],
-    par: 2,
-  },
-  {
-    rows: [
-      "P..#..",
-      "......",
-      "..#..G",
-    ],
-    par: 3,
-  },
-  {
-    rows: [
-      "P...#..",
-      ".#.....",
-      "....#..",
-      "......G",
-    ],
-    par: 3,
-  },
-  {
-    rows: [
-      "P..#...#",
-      "..#....#",
-      "#....#..",
-      "...#...G",
-    ],
-    par: 4,
-  },
+  { rows: ["P..G"] },
+  { rows: ["P....G"] },
+  { rows: ["P.....G"] },
+  { rows: ["P.......G"] },
+  { rows: ["P..#..G"] },
+  { rows: ["P.#....G"] },
+  { rows: ["P....", "....G"] },
+  { rows: ["P.....", "....G."] },
+  { rows: ["P....G", "......"] },
+  { rows: ["P...#.", "....G."] },
+  { rows: ["P.....", "......", ".....G"] },
+  { rows: ["P..#..", "......", "..#..G"] },
+  { rows: ["P....", ".###.", "G...."] },
+  { rows: ["P.....", ".#.#..", "....G."] },
+  { rows: ["P......", "..#....", "....#.G"] },
+  { rows: ["P.....", "......", "......", ".....G"] },
+  { rows: ["P...#..", ".#.....", "....#..", "......G"] },
+  { rows: ["P..#...#", "..#....#", "#....#..", "...#...G"] },
+  { rows: ["P..", "...", "..G"] },
+  { rows: ["P...", "....", "....", "...G"] },
+  { rows: ["P.#..", ".....", "..#..", "....G"] },
+  { rows: ["P......#", "...#....", "#.....#.", ".....#.G"] },
 ];
 
 type Cell = "." | "#" | "P" | "G" | "B"; // B = player and goal together
@@ -288,11 +279,19 @@ interface VerifiedLevel {
 
 function verifyLevels(): VerifiedLevel[] {
   const out: VerifiedLevel[] = [];
+  const seen = new Set<string>();
   for (const def of LEVELS) {
     const board = parse(def);
+    const key = boardKey(board);
+    if (seen.has(key)) continue;
+    seen.add(key);
     const par = solveLevel(board);
     if (par > 0) out.push({ board, par });
   }
+  // Sorted by true difficulty: fewest folds first, then smallest sheet. The
+  // ordering is derived rather than declared, so adding a level anywhere in
+  // the list above cannot break the curve.
+  out.sort((a, b) => a.par - b.par || a.board.w * a.board.h - b.board.w * b.board.h);
   return out;
 }
 
