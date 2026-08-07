@@ -1,7 +1,31 @@
 import Link from "next/link";
 import { GAMES } from "@/games/registry";
 
-const DIFFICULTY_BARS = ["▁", "▂", "▄", "▆", "█"];
+/**
+ * Difficulty as five ascending bars. Drawn as elements rather than the
+ * unicode block characters (▁▂▄▆█) — those sit on wildly different baselines
+ * depending on which font actually resolves them, and the row never lines up.
+ */
+function Difficulty({ level, accent }: { level: number; accent: string }) {
+  return (
+    <span
+      className="flex items-end gap-[2px]"
+      title={`Difficulty ${level} of 5`}
+      aria-label={`Difficulty ${level} of 5`}
+    >
+      {[0, 1, 2, 3, 4].map((i) => (
+        <span
+          key={i}
+          className="w-[3px] rounded-[1px]"
+          style={{
+            height: `${4 + i * 2.5}px`,
+            backgroundColor: i < level ? accent : "rgba(107,115,133,0.28)",
+          }}
+        />
+      ))}
+    </span>
+  );
+}
 
 function formatSession(seconds?: number) {
   if (!seconds) return "—";
@@ -94,13 +118,8 @@ export default function CatalogPage() {
                       </span>
                     </span>
 
-                    <span className="flex flex-col items-end gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-fog/70">
-                      <span
-                        className="text-sm leading-none text-[var(--game-accent)]"
-                        title={`Difficulty ${game.difficulty} of 5`}
-                      >
-                        {DIFFICULTY_BARS.slice(0, game.difficulty).join("")}
-                      </span>
+                    <span className="flex flex-col items-end gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-fog/70">
+                      <Difficulty level={game.difficulty} accent={game.accent} />
                       <span>{formatSession(game.sessionSeconds)}</span>
                     </span>
                   </Link>

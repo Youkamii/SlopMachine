@@ -19,7 +19,8 @@ const SITE_DESC =
   "A growing arcade of small browser games. No downloads, no accounts, no loading screens — every game is a few kilobytes of maths and sound.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://slopmachine.vercel.app"),
+  // slopmachine.vercel.app is taken by an unrelated project — this is ours.
+  metadataBase: new URL("https://slop-machine-arcade.vercel.app"),
   title: {
     default: `${SITE_NAME} — browser arcade`,
     template: `%s — ${SITE_NAME}`,
