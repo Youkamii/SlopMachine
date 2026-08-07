@@ -16,10 +16,8 @@
  */
 
 import * as THREE from "three";
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import type { PostStack } from "@/engine/gl/post";
+import { makePost } from "@/engine/gl/post";
 import { clamp, clamp01, damp, lerp } from "@/engine/math";
 import type { GameContext, GameFactory, GameInstance } from "@/games/types";
 
@@ -78,8 +76,8 @@ class Swarmfall implements GameInstance {
   private playerMesh!: THREE.Mesh;
   private playerGlow!: THREE.Sprite;
   private novaRing!: THREE.Mesh;
-  private composer!: EffectComposer;
-  private bloom!: UnrealBloomPass;
+  private post!: PostStack;
+  private enemyOutline!: THREE.InstancedMesh;
   private ready = false;
 
   private dummy = new THREE.Object3D();
@@ -174,7 +172,7 @@ class Swarmfall implements GameInstance {
     this.renderer.setPixelRatio(Math.min(this.c.dpr, 2));
     this.renderer.setClearColor(0x05060d, 1);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.toneMappingExposure = 0.92;
 
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.Fog(0x05060d, 34, 78);
@@ -241,6 +239,18 @@ class Swarmfall implements GameInstance {
       MAX_ENEMIES,
       new THREE.MeshBasicMaterial({ color: 0xffffff }),
       true,
+    );
+    // A back-face hull scaled up slightly draws as a hard black silhouette
+    // around every enemy. Without it the bloom eats the shapes and sixty
+    // enemies read as one white smear. One extra draw call for the horde.
+    this.enemyOutline = this.makeInstanced(
+      new THREE.IcosahedronGeometry(0.62, 0),
+      MAX_ENEMIES,
+      new THREE.MeshBasicMaterial({
+        color: 0x02030a,
+        side: THREE.BackSide,
+      }),
+      false,
     );
     this.bulletMesh = this.makeInstanced(
       new THREE.SphereGeometry(0.24, 8, 6),
@@ -322,16 +332,15 @@ class Swarmfall implements GameInstance {
     // Bloom is what makes this read as a modern 3D game rather than flat
     // shapes on a dark plane. Threshold is low so the additive sprites and
     // bright enemies all bleed.
-    this.composer = new EffectComposer(this.renderer);
-    this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.bloom = new UnrealBloomPass(
-      new THREE.Vector2(1, 1),
-      1.15,
-      0.62,
-      0.2,
-    );
-    this.composer.addPass(this.bloom);
-    this.composer.addPass(new OutputPass());
+    // Threshold matters more than strength. At 0.2 the ground grid and every
+    // ordinary surface bloomed too, which blew the whole frame out to a white
+    // haze with no readable shapes. Only genuinely HDR emitters should bleed.
+    this.post = makePost(this.renderer, this.scene, this.camera, {
+      strength: 0.95,
+      radius: 0.55,
+      threshold: 0.72,
+    });
+    this.post.grade.uniforms.vignette.value = 1.05;
 
     this.ready = true;
   }
@@ -365,15 +374,14 @@ class Swarmfall implements GameInstance {
     this.h = h;
     if (!this.ready) return;
     this.renderer.setSize(w, h, false);
-    this.composer?.setSize(w, h);
-    this.bloom?.setSize(w, h);
+    this.post?.setSize(w, h);
     this.camera.aspect = w / Math.max(1, h);
     this.camera.updateProjectionMatrix();
     if (this.phase === "levelup") this.layoutCards();
   }
 
   destroy() {
-    this.composer?.dispose?.();
+    this.post?.dispose();
     this.renderer?.dispose();
   }
 
@@ -987,9 +995,25 @@ class Swarmfall implements GameInstance {
     }
 
     // Bloom strength swells with the horde, so the screen literally gets
-    // brighter as things get worse.
-    this.bloom.strength = 1.0 + clamp01(this.eCount / 320) * 0.75 + this.levelFlash;
-    this.composer.render();
+    // brighter as things get worse — but capped, because past a point the
+    // frame stops being readable and the escalation stops registering.
+    const g = this.post.grade.uniforms;
+    this.post.bloom.strength =
+      0.85 + clamp01(this.eCount / 320) * 0.5 + this.levelFlash * 0.8;
+    g.time.value = this.time;
+    // Aberration and warp track the pressure the player is under, so a bad
+    // moment is legible from the edges of the screen alone.
+    const pressure = clamp01(this.eCount / 240);
+    g.amount.value = 0.0016 + pressure * 0.005 + this.levelFlash * 0.01;
+    g.warp.value = pressure * 0.045;
+    g.desat.value = this.phase === "dead" ? 0.8 : 0;
+    const hurt = clamp01(this.invuln / 0.9);
+    (g.flash.value as THREE.Color).setRGB(
+      hurt * 0.22 + this.levelFlash * 0.06,
+      this.levelFlash * 0.05,
+      this.levelFlash * 0.02,
+    );
+    this.post.composer.render();
     void ctx;
   }
 
@@ -1006,12 +1030,21 @@ class Swarmfall implements GameInstance {
       this.dummy.updateMatrix();
       m.setMatrixAt(i, this.dummy.matrix);
 
-      if (this.ehit[i] > 0) this.tmpColor.setRGB(6, 6, 6);
-      else if (tier === 2) this.tmpColor.setRGB(2.4, 0.35, 1.1);
-      else if (tier === 1) this.tmpColor.setRGB(2.4, 1.05, 0.28);
-      else this.tmpColor.setRGB(0.95, 0.62, 2.4);
+      this.dummy.scale.setScalar(s * 1.16);
+      this.dummy.updateMatrix();
+      this.enemyOutline.setMatrixAt(i, this.dummy.matrix);
+
+      // Only one channel is allowed past 1. Pushing all three — which the
+      // first pass did — makes an enemy a white ball the moment bloom hits
+      // it, and a screen of white balls has no shapes in it.
+      if (this.ehit[i] > 0) this.tmpColor.setRGB(3.4, 3.2, 3.6);
+      else if (tier === 2) this.tmpColor.setRGB(1.85, 0.12, 0.62);
+      else if (tier === 1) this.tmpColor.setRGB(1.7, 0.52, 0.06);
+      else this.tmpColor.setRGB(0.32, 0.16, 1.7);
       colors.setXYZ(i, this.tmpColor.r, this.tmpColor.g, this.tmpColor.b);
     }
+    this.enemyOutline.count = this.eCount;
+    this.enemyOutline.instanceMatrix.needsUpdate = true;
     m.instanceMatrix.needsUpdate = true;
     colors.needsUpdate = true;
   }
