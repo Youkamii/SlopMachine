@@ -16,6 +16,10 @@
  */
 
 import * as THREE from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { clamp, clamp01, damp, lerp } from "@/engine/math";
 import type { GameContext, GameFactory, GameInstance } from "@/games/types";
 
@@ -74,6 +78,8 @@ class Swarmfall implements GameInstance {
   private playerMesh!: THREE.Mesh;
   private playerGlow!: THREE.Sprite;
   private novaRing!: THREE.Mesh;
+  private composer!: EffectComposer;
+  private bloom!: UnrealBloomPass;
   private ready = false;
 
   private dummy = new THREE.Object3D();
@@ -167,6 +173,8 @@ class Swarmfall implements GameInstance {
     });
     this.renderer.setPixelRatio(Math.min(this.c.dpr, 2));
     this.renderer.setClearColor(0x05060d, 1);
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.15;
 
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.Fog(0x05060d, 34, 78);
@@ -311,6 +319,20 @@ class Swarmfall implements GameInstance {
     this.novaRing.position.y = 0.4;
     this.scene.add(this.novaRing);
 
+    // Bloom is what makes this read as a modern 3D game rather than flat
+    // shapes on a dark plane. Threshold is low so the additive sprites and
+    // bright enemies all bleed.
+    this.composer = new EffectComposer(this.renderer);
+    this.composer.addPass(new RenderPass(this.scene, this.camera));
+    this.bloom = new UnrealBloomPass(
+      new THREE.Vector2(1, 1),
+      1.15,
+      0.62,
+      0.2,
+    );
+    this.composer.addPass(this.bloom);
+    this.composer.addPass(new OutputPass());
+
     this.ready = true;
   }
 
@@ -343,12 +365,15 @@ class Swarmfall implements GameInstance {
     this.h = h;
     if (!this.ready) return;
     this.renderer.setSize(w, h, false);
+    this.composer?.setSize(w, h);
+    this.bloom?.setSize(w, h);
     this.camera.aspect = w / Math.max(1, h);
     this.camera.updateProjectionMatrix();
     if (this.phase === "levelup") this.layoutCards();
   }
 
   destroy() {
+    this.composer?.dispose?.();
     this.renderer?.dispose();
   }
 
@@ -961,7 +986,10 @@ class Swarmfall implements GameInstance {
       nm.opacity = 0;
     }
 
-    this.renderer.render(this.scene, this.camera);
+    // Bloom strength swells with the horde, so the screen literally gets
+    // brighter as things get worse.
+    this.bloom.strength = 1.0 + clamp01(this.eCount / 320) * 0.75 + this.levelFlash;
+    this.composer.render();
     void ctx;
   }
 
@@ -978,10 +1006,10 @@ class Swarmfall implements GameInstance {
       this.dummy.updateMatrix();
       m.setMatrixAt(i, this.dummy.matrix);
 
-      if (this.ehit[i] > 0) this.tmpColor.setRGB(4, 4, 4);
-      else if (tier === 2) this.tmpColor.setHex(0xff4d9d);
-      else if (tier === 1) this.tmpColor.setHex(0xffa24d);
-      else this.tmpColor.setHex(0x7a5cff);
+      if (this.ehit[i] > 0) this.tmpColor.setRGB(6, 6, 6);
+      else if (tier === 2) this.tmpColor.setRGB(2.4, 0.35, 1.1);
+      else if (tier === 1) this.tmpColor.setRGB(2.4, 1.05, 0.28);
+      else this.tmpColor.setRGB(0.95, 0.62, 2.4);
       colors.setXYZ(i, this.tmpColor.r, this.tmpColor.g, this.tmpColor.b);
     }
     m.instanceMatrix.needsUpdate = true;
