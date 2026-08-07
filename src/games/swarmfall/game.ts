@@ -149,6 +149,7 @@ class Swarmfall implements GameInstance {
   private dCount = 0;
 
   private spawnTimer = 0;
+  private waveTimer = 6;
   private shake = 0;
   private novaTimer = 0;
   private musicStep = 0;
@@ -469,6 +470,7 @@ class Swarmfall implements GameInstance {
     this.gCount = 0;
     this.dCount = 0;
     this.spawnTimer = 0;
+    this.waveTimer = 6;
     this.weapons = [
       { id: "bolt", name: "BOLT", blurb: "", level: 1, cooldown: WEAPON_DEFS.bolt.cd, timer: 0 },
     ];
@@ -561,28 +563,79 @@ class Swarmfall implements GameInstance {
     }
   }
 
+  /**
+   * Spawns on a ring around the PLAYER, not around the arena centre.
+   *
+   * The first version used the arena centre, so once the player drifted to
+   * the rim every new enemy appeared on the far side of the world and spent
+   * six seconds walking. A screenshot at four seconds in had literally zero
+   * enemies visible — a horde survivor with no horde.
+   *
+   * It also targets a live population rather than a spawn rate. Rate-based
+   * spawning goes thin exactly when the player's damage output is highest,
+   * which is backwards: the screen should fill up as you get stronger.
+   */
+  private spawnOne(angle: number, radius: number, minute: number) {
+    if (this.eCount >= MAX_ENEMIES) return;
+    const rng = this.c.rng;
+    let x = this.px + Math.cos(angle) * radius;
+    let z = this.pz + Math.sin(angle) * radius;
+    // Fold anything outside the arena back across the boundary so enemies
+    // never appear stranded in the void.
+    const d = Math.hypot(x, z);
+    if (d > ARENA * 0.97) {
+      const k = (ARENA * 0.97) / d;
+      x *= k;
+      z *= k;
+    }
+    const idx = this.eCount++;
+    this.ex[idx] = x;
+    this.ez[idx] = z;
+    const roll = rng.next();
+    const tier = minute > 2.0 && roll > 0.9 ? 2 : minute > 0.7 && roll > 0.66 ? 1 : 0;
+    this.etype[idx] = tier;
+    this.ehp[idx] = [3, 9, 26][tier] * (1 + minute * 0.5);
+    this.ehit[idx] = 0;
+  }
+
   private spawnEnemies(dt: number) {
+    const minute = this.time / 60;
+    const rng = this.c.rng;
+
+    // A ring just past the far edge of the frame, so they walk into view
+    // rather than popping in, but close enough to arrive within a second.
+    const ring = () => rng.range(27, 35);
+
+    // Timed waves: a full circle drops at once and the screen visibly floods.
+    this.waveTimer -= dt;
+    if (this.waveTimer <= 0) {
+      this.waveTimer = lerp(24, 13, clamp01(minute / 4));
+      const n = Math.round(lerp(26, 90, clamp01(minute / 4)));
+      const base = rng.angle();
+      for (let i = 0; i < n; i++) {
+        this.spawnOne(base + (i / n) * Math.PI * 2, rng.range(30, 34), minute);
+      }
+      this.levelFlash = Math.max(this.levelFlash, 0.5);
+      this.shake = Math.max(this.shake, 0.5);
+      this.c.audio.play({
+        wave: "sine", freq: 78, freqTo: 34, glide: 0.55,
+        vol: 0.34, attack: 0.005, hold: 0.1, release: 0.5,
+      });
+      this.c.audio.play({
+        wave: "sawtooth", freq: 150, freqTo: 60, glide: 0.4,
+        vol: 0.16, filter: 1400, filterTo: 260, release: 0.4,
+      });
+    }
+
+    // Trickle toward the target population between waves.
+    const target = Math.round(lerp(34, 300, clamp01(minute / 4.5)));
     this.spawnTimer -= dt;
     if (this.spawnTimer > 0) return;
-
-    const minute = this.time / 60;
-    const batch = Math.round(lerp(3, 26, clamp01(minute / 4)));
-    this.spawnTimer = lerp(0.75, 0.2, clamp01(minute / 4));
-
-    const rng = this.c.rng;
-    for (let i = 0; i < batch && this.eCount < MAX_ENEMIES; i++) {
-      const a = rng.angle();
-      // Spawn on a ring outside the player's view so they walk in.
-      const d = ARENA * rng.range(0.82, 0.98);
-      const idx = this.eCount++;
-      this.ex[idx] = Math.cos(a) * d;
-      this.ez[idx] = Math.sin(a) * d;
-      const roll = rng.next();
-      const tier = minute > 2.2 && roll > 0.9 ? 2 : minute > 0.9 && roll > 0.68 ? 1 : 0;
-      this.etype[idx] = tier;
-      this.ehp[idx] = [3, 9, 26][tier] * (1 + minute * 0.45);
-      this.ehit[idx] = 0;
-    }
+    this.spawnTimer = 0.18;
+    const deficit = target - this.eCount;
+    if (deficit <= 0) return;
+    const batch = Math.min(deficit, Math.round(lerp(5, 22, clamp01(minute / 4))));
+    for (let i = 0; i < batch; i++) this.spawnOne(rng.angle(), ring(), minute);
   }
 
   private stepEnemies(dt: number) {
