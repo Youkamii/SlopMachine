@@ -26,6 +26,12 @@ export interface MountOptions {
   pixelated?: boolean;
   /** Seed for reproducible runs (daily challenges). */
   seed?: number;
+  /**
+   * WebGL game. The shell must not call getContext("2d") — the first context
+   * type taken on a canvas is permanent, so asking for 2D would make WebGL
+   * unavailable for the rest of the page's life.
+   */
+  webgl?: boolean;
 }
 
 export interface GameHandle {
@@ -42,12 +48,14 @@ export function mountGame(
   factory: GameFactory,
   opts: MountOptions,
 ): GameHandle {
-  const ctx = canvas.getContext("2d", {
-    // Opaque canvas — the browser can skip the alpha composite entirely.
-    alpha: false,
-    // Lower input-to-photon latency. Harmless when unsupported.
-    desynchronized: true,
-  }) as CanvasRenderingContext2D;
+  const ctx = opts.webgl
+    ? (null as unknown as CanvasRenderingContext2D)
+    : (canvas.getContext("2d", {
+        // Opaque canvas — the browser can skip the alpha composite entirely.
+        alpha: false,
+        // Lower input-to-photon latency. Harmless when unsupported.
+        desynchronized: true,
+      }) as CanvasRenderingContext2D);
 
   const parent = canvas.parentElement ?? canvas;
   const input = new Input();
@@ -71,6 +79,10 @@ export function mountGame(
     },
     get height() {
       return size.height;
+    },
+    canvas,
+    get dpr() {
+      return size.dpr;
     },
     input,
     audio,
@@ -99,7 +111,7 @@ export function mountGame(
         }
       },
       render() {
-        resetTransform(ctx, size.dpr);
+        if (!opts.webgl) resetTransform(ctx, size.dpr);
         game.draw(ctx);
       },
     },

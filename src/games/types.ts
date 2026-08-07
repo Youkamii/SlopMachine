@@ -13,6 +13,13 @@ export interface GameContext {
   /** Canvas size in CSS pixels. Re-read every frame; it changes on resize. */
   readonly width: number;
   readonly height: number;
+  /**
+   * The raw canvas. WebGL games take this and attach their own renderer;
+   * 2D games never need it because they get a context in `draw`.
+   */
+  readonly canvas: HTMLCanvasElement;
+  /** Device pixel ratio actually in use (capped). WebGL games need it. */
+  readonly dpr: number;
   readonly input: Input;
   readonly audio: AudioKit;
   readonly fx: Juice;
@@ -31,6 +38,30 @@ export interface GameReport {
   label?: string;
   /** Drives the shell's overlay. Games that never end can stay "playing". */
   status?: "idle" | "playing" | "over" | "won";
+  /**
+   * Free-form state for games that need a DOM heads-up display.
+   *
+   * WebGL games cannot draw a 2D HUD on their own canvas — the context type
+   * is fixed for the canvas's lifetime — so they publish state here and the
+   * shell renders it as HTML on top.
+   */
+  hud?: HudState;
+}
+
+export interface HudState {
+  kind: "swarm";
+  hp: number;
+  maxHp: number;
+  xp: number;
+  xpNeed: number;
+  level: number;
+  kills: number;
+  seconds: number;
+  /** Present only while a level-up choice is open. */
+  cards?: Array<{ title: string; body: string }>;
+  phase: "playing" | "levelup" | "dead" | "title";
+  score: number;
+  best: number;
 }
 
 /**
@@ -91,6 +122,11 @@ export interface GameMeta {
   /** Card accent + background. Should match the game's own palette. */
   accent: string;
   bg: string;
+  /**
+   * Renders with WebGL rather than Canvas2D. The shell must not take a 2D
+   * context on this canvas — once taken, WebGL can never be acquired on it.
+   */
+  webgl?: boolean;
   /** ISO date, used for "new" badges and catalog ordering. */
   released: string;
   /** Typical single-session length, in seconds. Shown as "~2 min". */

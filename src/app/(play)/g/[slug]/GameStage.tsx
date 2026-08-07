@@ -8,6 +8,7 @@ import { mountGame } from "@/engine/mount";
 import { prefs } from "@/engine/storage";
 import { getLoader } from "@/games/loaders";
 import type { GameReport } from "@/games/types";
+import SwarmHud from "./SwarmHud";
 
 type Phase = "loading" | "ready" | "missing" | "stale";
 
@@ -16,6 +17,7 @@ interface Props {
   title: string;
   accent: string;
   pixelated?: boolean;
+  webgl?: boolean;
 }
 
 /**
@@ -26,7 +28,13 @@ interface Props {
  * chrome across a whole catalog is exactly what makes a collection of games
  * feel mass-produced.
  */
-export default function GameStage({ slug, title, accent, pixelated }: Props) {
+export default function GameStage({
+  slug,
+  title,
+  accent,
+  pixelated,
+  webgl,
+}: Props) {
   const [phase, setPhase] = useState<Phase>("loading");
   const [muted, setMuted] = useState(false);
   const [report, setReport] = useState<GameReport>({});
@@ -56,6 +64,7 @@ export default function GameStage({ slug, title, accent, pixelated }: Props) {
           handle = mountGame(canvas, factory, {
             slug,
             pixelated,
+            webgl,
             onReport: setReport,
           });
           handleRef.current = handle;
@@ -76,7 +85,7 @@ export default function GameStage({ slug, title, accent, pixelated }: Props) {
         handleRef.current = null;
       };
     },
-    [slug, pixelated],
+    [slug, pixelated, webgl],
   );
 
   const toggleMute = useCallback(() => {
@@ -102,6 +111,8 @@ export default function GameStage({ slug, title, accent, pixelated }: Props) {
   return (
     <div className="relative h-full w-full bg-ink">
       <canvas ref={canvasRef} />
+
+      {report.hud?.kind === "swarm" ? <SwarmHud hud={report.hud} /> : null}
 
       {/* Chrome. Sits above the canvas but never intercepts play input. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3 sm:p-4">

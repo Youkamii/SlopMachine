@@ -296,4 +296,23 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 90,
   },
+  {
+    slug: "swarmfall",
+    title: "Swarmfall",
+    tagline: "Hundreds of them. Your guns fire themselves. Just don't stop.",
+    description:
+      "A 3D horde survivor. You move, the weapons shoot on their own, and hundreds of enemies pour in from every edge. Kills throw debris, gems snap to you, and every few seconds the world freezes and hands you three cards. It gets louder, brighter and faster until it buries you. Built with three.js and instanced rendering, so a thousand enemies cost one draw call.",
+    tags: ["action", "roguelite", "arcade"],
+    author: "alex",
+    difficulty: 2,
+    controls: {
+      desktop: "WASD or arrows. Hold the mouse to steer. 1 / 2 / 3 to pick cards.",
+      mobile: "Hold and drag anywhere to steer. Tap a card to take it.",
+    },
+    accent: "#ffe14d",
+    bg: "#05060d",
+    webgl: true,
+    released: "2026-08-08",
+    sessionSeconds: 240,
+  },
 ];

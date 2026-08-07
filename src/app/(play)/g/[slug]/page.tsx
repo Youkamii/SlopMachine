@@ -40,6 +40,11 @@ export default async function GamePage({
   if (!game) notFound();
 
   return (
-    <GameStage slug={game.slug} title={game.title} accent={game.accent} />
+    <GameStage
+      slug={game.slug}
+      title={game.title}
+      accent={game.accent}
+      webgl={game.webgl}
+    />
   );
 }
