@@ -224,10 +224,15 @@ class Swarmfall implements GameInstance {
     this.scene.add(rim);
 
     // --- instanced pools
+    // NOTE: do NOT set vertexColors here. That switches the shader to read a
+    // per-vertex colour attribute the geometry does not have, and everything
+    // renders black. InstancedMesh.instanceColor is a separate path and is
+    // picked up automatically.
     this.enemyMesh = this.makeInstanced(
       new THREE.IcosahedronGeometry(0.62, 0),
       MAX_ENEMIES,
-      new THREE.MeshBasicMaterial({ vertexColors: true }),
+      new THREE.MeshBasicMaterial({ color: 0xffffff }),
+      true,
     );
     this.bulletMesh = this.makeInstanced(
       new THREE.SphereGeometry(0.24, 8, 6),
@@ -252,7 +257,13 @@ class Swarmfall implements GameInstance {
     this.debrisMesh = this.makeInstanced(
       new THREE.TetrahedronGeometry(0.3, 0),
       MAX_DEBRIS,
-      new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true }),
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false,
+      }),
+      true,
     );
     this.bladeMesh = this.makeInstanced(
       new THREE.BoxGeometry(1.5, 0.16, 0.32),
@@ -309,17 +320,19 @@ class Swarmfall implements GameInstance {
     geo: THREE.BufferGeometry,
     count: number,
     mat: THREE.Material,
+    perInstanceColour = false,
   ) {
     const mesh = new THREE.InstancedMesh(geo, mat, count);
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     mesh.count = 0;
     mesh.frustumCulled = false;
-    if ((mat as THREE.MeshBasicMaterial).vertexColors) {
-      mesh.instanceColor = new THREE.InstancedBufferAttribute(
-        new Float32Array(count * 3),
+    if (perInstanceColour) {
+      const attr = new THREE.InstancedBufferAttribute(
+        new Float32Array(count * 3).fill(1),
         3,
       );
-      mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
+      attr.setUsage(THREE.DynamicDrawUsage);
+      mesh.instanceColor = attr;
     }
     this.scene.add(mesh);
     return mesh;

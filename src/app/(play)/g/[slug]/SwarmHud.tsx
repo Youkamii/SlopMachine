@@ -45,8 +45,10 @@ export default function SwarmHud({ hud }: { hud: HudState }) {
         />
       </div>
 
-      <div className="absolute left-4 top-[18px] flex items-baseline gap-3">
-        <span className="text-[26px] font-bold leading-none text-[#ffe14d]">
+      {/* Sits below the shell's back button and mute toggle rather than
+          fighting them for the corners. */}
+      <div className="absolute left-4 top-[62px] flex items-baseline gap-3">
+        <span className="text-[30px] font-bold leading-none text-[#ffe14d]">
           {hud.level}
         </span>
         <span className="text-[10px] uppercase tracking-[0.18em] text-white/45">
@@ -54,8 +56,8 @@ export default function SwarmHud({ hud }: { hud: HudState }) {
         </span>
       </div>
 
-      <div className="absolute right-4 top-[18px] text-right">
-        <div className="text-[26px] font-bold leading-none tabular-nums text-white">
+      <div className="absolute right-4 top-[62px] text-right">
+        <div className="text-[30px] font-bold leading-none tabular-nums text-white">
           {hud.kills}
         </div>
         <div className="text-[10px] uppercase tracking-[0.18em] text-white/45">
@@ -63,7 +65,7 @@ export default function SwarmHud({ hud }: { hud: HudState }) {
         </div>
       </div>
 
-      <div className="absolute inset-x-0 top-[20px] text-center text-[13px] tabular-nums text-white/60">
+      <div className="absolute inset-x-0 top-[70px] text-center text-[14px] tabular-nums text-white/55">
         {mins}:{secs.toString().padStart(2, "0")}
       </div>
 
