@@ -8,4 +8,6 @@ import type { GameLoader } from "./loaders";
  * A template-literal import (`import(\`./${slug}/game\`)`) would drag every
  * file under games/ into the graph — never do that.
  */
-export const ALEX_LOADERS: Record<string, GameLoader> = {};
+export const ALEX_LOADERS: Record<string, GameLoader> = {
+  grazefield: () => import("./grazefield/game"),
+};
