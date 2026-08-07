@@ -134,4 +134,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 180,
   },
+  {
+    slug: "ostinato",
+    title: "Ostinato",
+    tagline: "The solution to the puzzle is the song.",
+    description:
+      "Everything you do inside a four-bar loop is recorded, and on the next loop a solid ghost of your past self repeats it. Rooms are solved by layering three or four selves — and because each ghost plays one instrument, the arrangement completes at the exact moment the puzzle does. Moves snap to the beat, so playing badly sounds wrong before it looks wrong.",
+    tags: ["rhythm", "puzzle", "atmospheric"],
+    author: "alex",
+    difficulty: 3,
+    controls: {
+      desktop: "Arrows or WASD. Moves snap to the sixteenth. R resets the loop.",
+      mobile: "Swipe to move, or tap an adjacent tile.",
+    },
+    accent: "#5ad2e0",
+    bg: "#242932",
+    released: "2026-08-08",
+    sessionSeconds: 240,
+  },
 ];
