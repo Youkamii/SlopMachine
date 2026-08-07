@@ -75,6 +75,7 @@ class Swarmfall implements GameInstance {
   private bladeMesh!: THREE.InstancedMesh;
   private playerMesh!: THREE.Mesh;
   private playerGlow!: THREE.Sprite;
+  private playerRing!: THREE.Mesh;
   private novaRing!: THREE.Mesh;
   private post!: PostStack;
   private enemyOutline!: THREE.InstancedMesh;
@@ -185,26 +186,48 @@ class Swarmfall implements GameInstance {
       uniforms: { uTime: { value: 0 } },
       vertexShader: `
         varying vec2 vUv;
+        varying float vDepth;
         void main() {
           vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          vDepth = -mv.z;
+          gl_Position = projectionMatrix * mv;
         }
       `,
+      // The grid has to stay a floor, not become the subject. Two grid
+      // scales give the plane a sense of size, and everything fades to black
+      // with view depth so the frame keeps real shadow in it — a screen with
+      // no darkness anywhere reads as washed out no matter how the colours
+      // are tuned.
       fragmentShader: `
         varying vec2 vUv;
+        varying float vDepth;
         uniform float uTime;
+
+        float gridLine(vec2 uv, float scale, float w) {
+          vec2 g = abs(fract(uv * scale) - 0.5);
+          vec2 d = fwidth(uv * scale);
+          vec2 l = smoothstep(vec2(0.0), d * w, g);
+          return 1.0 - min(l.x, l.y);
+        }
+
         void main() {
-          vec2 g = fract(vUv * 56.0);
-          float line = min(
-            smoothstep(0.0, 0.035, g.x) * smoothstep(0.0, 0.035, 1.0 - g.x),
-            smoothstep(0.0, 0.035, g.y) * smoothstep(0.0, 0.035, 1.0 - g.y)
-          );
-          float grid = 1.0 - line;
+          float fine = gridLine(vUv, 96.0, 1.6);
+          float coarse = gridLine(vUv, 12.0, 2.2);
           vec2 c = vUv - 0.5;
           float r = length(c);
-          float pulse = 0.5 + 0.5 * sin(uTime * 1.6 - r * 26.0);
-          vec3 col = mix(vec3(0.02,0.03,0.06), vec3(0.06,0.16,0.30), grid * (0.35 + pulse * 0.5));
-          col += vec3(0.03,0.09,0.18) * smoothstep(0.5, 0.05, r);
+
+          float pulse = 0.5 + 0.5 * sin(uTime * 1.6 - r * 30.0);
+
+          vec3 col = vec3(0.006, 0.010, 0.022);
+          col += vec3(0.020, 0.070, 0.130) * fine * (0.30 + pulse * 0.35);
+          col += vec3(0.040, 0.180, 0.340) * coarse * (0.45 + pulse * 0.55);
+          col += vec3(0.010, 0.040, 0.090) * smoothstep(0.42, 0.02, r);
+
+          // Depth fade, plus a hard cut past the arena so the floor does not
+          // stretch to the horizon as a bright haze.
+          float fade = 1.0 - smoothstep(18.0, 62.0, vDepth);
+          col *= fade * (1.0 - smoothstep(0.40, 0.50, r));
           gl_FragColor = vec4(col, 1.0);
         }
       `,
@@ -234,10 +257,24 @@ class Swarmfall implements GameInstance {
     // per-vertex colour attribute the geometry does not have, and everything
     // renders black. InstancedMesh.instanceColor is a separate path and is
     // picked up automatically.
+    // Lit rather than emissive. An unlit icosahedron viewed from a high
+    // camera is a flat coloured polygon — it reads as a 2D sticker lying on
+    // the floor. Facet shading is what makes the horde look like objects.
+    // instanceColor multiplies the diffuse term, so values above 1 still
+    // blow past the bloom threshold on the lit faces while the shadowed
+    // faces stay dark, which is exactly the read we want.
+    this.scene.add(new THREE.AmbientLight(0x4a6bd0, 0.55));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.1);
+    keyLight.position.set(0.45, 1, 0.35);
+    this.scene.add(keyLight);
+    const rimLight = new THREE.DirectionalLight(0xff4d8d, 0.8);
+    rimLight.position.set(-0.6, 0.25, -0.7);
+    this.scene.add(rimLight);
+
     this.enemyMesh = this.makeInstanced(
       new THREE.IcosahedronGeometry(0.62, 0),
       MAX_ENEMIES,
-      new THREE.MeshBasicMaterial({ color: 0xffffff }),
+      new THREE.MeshLambertMaterial({ color: 0xffffff }),
       true,
     );
     // A back-face hull scaled up slightly draws as a hard black silhouette
@@ -294,13 +331,37 @@ class Swarmfall implements GameInstance {
       }),
     );
 
-    // Player
+    // Player. The hull is lit like the horde so it has facets, and a black
+    // back-face shell keeps it legible when it is standing inside its own
+    // muzzle glow — previously the ship and the glow were one white smear.
     this.playerMesh = new THREE.Mesh(
-      new THREE.ConeGeometry(0.62, 1.7, 5),
-      new THREE.MeshBasicMaterial({ color: 0xffffff }),
+      new THREE.ConeGeometry(0.62, 1.9, 4),
+      new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x0a2a3a }),
     );
     this.playerMesh.rotation.x = Math.PI / 2;
     this.scene.add(this.playerMesh);
+
+    const hullShell = new THREE.Mesh(
+      new THREE.ConeGeometry(0.62 * 1.2, 1.9 * 1.14, 4),
+      new THREE.MeshBasicMaterial({ color: 0x02030a, side: THREE.BackSide }),
+    );
+    this.playerMesh.add(hullShell);
+
+    // A thin ring on the floor under the ship. Without a ground contact cue
+    // the player reads as floating and it becomes hard to judge pickup range.
+    this.playerRing = new THREE.Mesh(
+      new THREE.RingGeometry(1.5, 1.72, 48),
+      new THREE.MeshBasicMaterial({
+        color: 0x2ad4ff,
+        transparent: true,
+        opacity: 0.5,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    );
+    this.playerRing.rotation.x = -Math.PI / 2;
+    this.scene.add(this.playerRing);
 
     this.playerGlow = new THREE.Sprite(
       new THREE.SpriteMaterial({
@@ -340,7 +401,7 @@ class Swarmfall implements GameInstance {
       radius: 0.55,
       threshold: 0.72,
     });
-    this.post.grade.uniforms.vignette.value = 1.05;
+    this.post.grade.uniforms.vignette.value = 1.32;
 
     this.ready = true;
   }
@@ -975,6 +1036,11 @@ class Swarmfall implements GameInstance {
       this.invuln > 0 && Math.floor(this.time * 20) % 2 === 0 ? 0xff3355 : 0xffffff,
     );
     this.playerGlow.position.set(this.px, 0.5, this.pz);
+    this.playerRing.position.set(this.px, 0.03, this.pz);
+    const ringScale = this.pickupRange / 1.6;
+    this.playerRing.scale.set(ringScale, ringScale, 1);
+    (this.playerRing.material as THREE.MeshBasicMaterial).opacity =
+      0.28 + Math.sin(this.time * 3.4) * 0.08;
 
     this.syncEnemies();
     this.syncSimple(this.bulletMesh, this.bx, this.bz, this.bCount, 0.5, 1);
