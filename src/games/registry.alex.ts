@@ -80,4 +80,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 80,
   },
+  {
+    slug: "ghostline",
+    title: "Ghostline",
+    tagline: "Every lap you finish comes back. As a wall.",
+    description:
+      "A time trial on one fixed track. Each lap you complete is recorded and returns as a solid, collidable ghost — so the better you get, the more crowded the course becomes. Eventually the only way through is a line none of your past selves ever took. Your history is the difficulty curve.",
+    tags: ["action", "reflex", "endless"],
+    author: "alex",
+    difficulty: 3,
+    controls: {
+      desktop: "Hold the mouse to steer, or use A / D.",
+      mobile: "Drag to steer.",
+    },
+    accent: "#5eead4",
+    bg: "#02100e",
+    released: "2026-08-08",
+    sessionSeconds: 70,
+  },
 ];
