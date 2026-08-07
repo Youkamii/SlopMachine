@@ -188,4 +188,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 210,
   },
+  {
+    slug: "the-tell",
+    title: "The Tell",
+    tagline: "Every man moves before he draws. A different move each time.",
+    description:
+      "A quickdraw duel that is not a reflex test. Each opponent makes a different micro-movement just before drawing, and firing before that tell loses instantly. You lose the first duel learning what to watch for, then win the rematch on two hundred milliseconds. Losing replays the moment in slow motion with the tell circled.",
+    tags: ["reflex", "deduction", "arcade"],
+    author: "alex",
+    difficulty: 2,
+    controls: {
+      desktop: "Any key or click to draw. Nothing else.",
+      mobile: "Tap to draw.",
+    },
+    accent: "#f6bd60",
+    bg: "#84658f",
+    released: "2026-08-08",
+    sessionSeconds: 90,
+  },
 ];
