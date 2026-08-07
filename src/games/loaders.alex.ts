@@ -1,0 +1,11 @@
+import type { GameLoader } from "./loaders";
+
+/**
+ * Code-split entry points for `alex` games.
+ *
+ * Each value is a thunk containing a literal `import()`. The bundler emits
+ * one chunk per call site and none of them end up in the parent chunk.
+ * A template-literal import (`import(\`./${slug}/game\`)`) would drag every
+ * file under games/ into the graph — never do that.
+ */
+export const ALEX_LOADERS: Record<string, GameLoader> = {};
