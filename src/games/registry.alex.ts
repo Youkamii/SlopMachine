@@ -260,4 +260,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 240,
   },
+  {
+    slug: "lodestone",
+    title: "Lodestone",
+    tagline: "You cannot touch the particles. Sculpt the field they flow through.",
+    description:
+      "Paint attractor and repulsor fields onto the canvas and tens of thousands of particles find their own way through the vector field you made. You are shaping physics rather than objects — erase one magnet and the whole river re-routes. Particle count scales itself to whatever your device can actually sustain.",
+    tags: ["puzzle", "physics", "toy"],
+    author: "alex",
+    difficulty: 2,
+    controls: {
+      desktop: "Click to place. Q pulls, E pushes, Z undoes, R clears.",
+      mobile: "Tap to place a magnet.",
+    },
+    accent: "#4cc9f0",
+    bg: "#04060b",
+    released: "2026-08-08",
+    sessionSeconds: 180,
+  },
 ];
