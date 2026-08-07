@@ -1,0 +1,5 @@
+# git worktrees live inside the repository directory but are not part of any
+# commit. Uploading them duplicates every source file, which makes TypeScript
+# see two separate declarations of the same class.
+Alex
+steve
