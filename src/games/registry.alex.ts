@@ -206,4 +206,40 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 90,
   },
+  {
+    slug: "umbra",
+    title: "Umbra",
+    tagline: "It walks on its own. You only move the sun.",
+    description:
+      "The creature walks by itself and burns in direct sunlight. You never touch it — you drag the sun across the sky, and every shadow in the level is redrawn at once. The negative space is the path. One axis of input, and the whole level rearranges with it.",
+    tags: ["puzzle", "atmospheric", "one-button"],
+    author: "alex",
+    difficulty: 3,
+    controls: {
+      desktop: "Move the mouse, or A / D, to move the sun.",
+      mobile: "Drag sideways to move the sun.",
+    },
+    accent: "#f8d38a",
+    bg: "#e2703b",
+    released: "2026-08-08",
+    sessionSeconds: 150,
+  },
+  {
+    slug: "tideglass",
+    title: "Tideglass",
+    tagline: "There is nothing to win. Something grows toward your hand.",
+    description:
+      "A reef that grows toward wherever you point. No goal, no score, no failure state — the quiet tab in a collection that is otherwise all tension. Bioluminescent nodes pluck notes in a mode that drifts every forty seconds, and the garden's genome sits in the URL, so a shared link regrows the same organism.",
+    tags: ["toy", "atmospheric"],
+    author: "alex",
+    difficulty: 1,
+    controls: {
+      desktop: "Move the mouse. That is the whole game.",
+      mobile: "Drag — every finger grows something.",
+    },
+    accent: "#7df9ff",
+    bg: "#03121d",
+    released: "2026-08-08",
+    sessionSeconds: 120,
+  },
 ];

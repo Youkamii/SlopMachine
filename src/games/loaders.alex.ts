@@ -20,4 +20,6 @@ export const ALEX_LOADERS: Record<string, GameLoader> = {
   shunt: () => import("./shunt/game"),
   foldscape: () => import("./foldscape/game"),
   "the-tell": () => import("./the-tell/game"),
+  umbra: () => import("./umbra/game"),
+  tideglass: () => import("./tideglass/game"),
 };

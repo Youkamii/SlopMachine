@@ -75,8 +75,16 @@ export default function CatalogPage() {
             <h2 className="font-mono text-[11px] uppercase tracking-[0.2em] text-fog">
               Catalog
             </h2>
-            <span className="font-mono text-[11px] text-fog">
-              {count} {count === 1 ? "title" : "titles"}
+            <span className="flex items-baseline gap-4 font-mono text-[11px] text-fog">
+              <Link
+                href="/all"
+                className="uppercase tracking-[0.16em] transition-colors hover:text-acid"
+              >
+                everything ↗
+              </Link>
+              <span>
+                {count} {count === 1 ? "title" : "titles"}
+              </span>
             </span>
           </div>
 
