@@ -150,6 +150,9 @@ class Swarmfall implements GameInstance {
 
   private spawnTimer = 0;
   private waveTimer = 6;
+  private camX = 0;
+  private camZ = 0;
+  private camTarget = 24;
   private shake = 0;
   private novaTimer = 0;
   private musicStep = 0;
@@ -471,6 +474,9 @@ class Swarmfall implements GameInstance {
     this.dCount = 0;
     this.spawnTimer = 0;
     this.waveTimer = 6;
+    this.camX = 0;
+    this.camZ = 0;
+    this.camTarget = 24;
     this.weapons = [
       { id: "bolt", name: "BOLT", blurb: "", level: 1, cooldown: WEAPON_DEFS.bolt.cd, timer: 0 },
     ];
@@ -1075,13 +1081,29 @@ class Swarmfall implements GameInstance {
     if (!this.ready) return;
     this.groundMat.uniforms.uTime.value = this.time;
 
-    // Camera trails the player, with shake baked in.
-    const camDist = 34;
+    // Camera follows the player rather than easing back toward the arena
+    // centre. The old rig put the ship a third of the way to the edge of the
+    // frame whenever the player moved out, so the side you were running
+    // toward — the side the horde was on — was the side you could not see.
+    // Height doubles as the zoom: it pulls back as the horde thickens, which
+    // makes the pressure legible without any HUD element saying so.
+    const camPressure = clamp01(this.eCount / 260);
+    this.camTarget = damp(this.camTarget, 23 + camPressure * 7, 0.04, 1 / 60);
+    const camDist = this.camTarget;
     const sh = this.shake;
-    const shx = sh > 0 ? Math.sin(this.time * 61) * sh * 0.5 : 0;
-    const shz = sh > 0 ? Math.cos(this.time * 47) * sh * 0.5 : 0;
-    this.camera.position.set(this.px * 0.62 + shx, camDist, this.pz * 0.62 + camDist * 0.62 + shz);
-    this.camera.lookAt(this.px * 0.62, 0, this.pz * 0.62);
+    const shx = sh > 0 ? Math.sin(this.time * 61) * sh * 0.6 : 0;
+    const shz = sh > 0 ? Math.cos(this.time * 47) * sh * 0.6 : 0;
+    // Lead the camera slightly into the direction of travel.
+    const leadX = clamp(this.pvx * 0.22, -5, 5);
+    const leadZ = clamp(this.pvz * 0.22, -5, 5);
+    this.camX = damp(this.camX, this.px + leadX, 0.22, 1 / 60);
+    this.camZ = damp(this.camZ, this.pz + leadZ, 0.22, 1 / 60);
+    this.camera.position.set(
+      this.camX + shx,
+      camDist,
+      this.camZ + camDist * 0.58 + shz,
+    );
+    this.camera.lookAt(this.camX, 0, this.camZ);
 
     this.playerMesh.position.set(this.px, 0.9, this.pz);
     this.playerMesh.rotation.z = -this.facing;
@@ -1142,7 +1164,7 @@ class Swarmfall implements GameInstance {
     const colors = m.instanceColor!;
     for (let i = 0; i < this.eCount; i++) {
       const tier = this.etype[i];
-      const s = [1, 1.5, 2.4][tier];
+      const s = [1.32, 1.95, 3.1][tier];
       this.dummy.position.set(this.ex[i], 0.62 * s, this.ez[i]);
       this.dummy.rotation.set(this.time * 1.4 + i, this.time * 0.9 + i, 0);
       this.dummy.scale.setScalar(s);
