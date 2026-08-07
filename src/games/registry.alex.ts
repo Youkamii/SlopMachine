@@ -98,4 +98,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 70,
   },
+  {
+    slug: "friendly-fire",
+    title: "Friendly Fire",
+    tagline: "You have no attack. Make them walk into each other.",
+    description:
+      "A 5x5 tactics puzzle where your only actions are moving one tile or waiting. Every kill has to be arranged by luring two enemies onto the same square. Fully telegraphed, fully deterministic, unlimited undo — and every puzzle is machine-solved before you see it, so it is always winnable and never trivial.",
+    tags: ["puzzle", "strategy", "deduction"],
+    author: "alex",
+    difficulty: 2,
+    controls: {
+      desktop: "Arrows or WASD to move, Space to wait, Z to undo, R to reset.",
+      mobile: "Tap a neighbouring tile, or tap yourself to wait.",
+    },
+    accent: "#d92b2b",
+    bg: "#e9ebec",
+    released: "2026-08-08",
+    sessionSeconds: 150,
+  },
 ];
