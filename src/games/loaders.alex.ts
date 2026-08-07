@@ -15,4 +15,5 @@ export const ALEX_LOADERS: Record<string, GameLoader> = {
   homerow: () => import("./homerow/game"),
   ghostline: () => import("./ghostline/game"),
   "friendly-fire": () => import("./friendly-fire/game"),
+  kessler: () => import("./kessler/game"),
 };

@@ -116,4 +116,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 150,
   },
+  {
+    slug: "kessler",
+    title: "Kessler",
+    tagline: "Success is what triggers the catastrophe.",
+    description:
+      "Drag to fling satellites into orbit around a planet. Satellites that collide leave debris, debris stays up forever, and debris shreds satellites. Push the constellation far enough and you set off a real cascade — one collision tears a ring, that ring tears the next, and the whole network unzips while you watch, unable to stop it.",
+    tags: ["physics", "toy", "strategy"],
+    author: "alex",
+    difficulty: 3,
+    controls: {
+      desktop: "Drag near the planet to launch. Sideways gives a circular orbit.",
+      mobile: "Drag near the planet to launch.",
+    },
+    accent: "#ff7a45",
+    bg: "#0a0410",
+    released: "2026-08-08",
+    sessionSeconds: 180,
+  },
 ];
