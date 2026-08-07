@@ -115,11 +115,6 @@ export default function GameStage({ slug, title, accent, pixelated }: Props) {
         </Link>
 
         <div className="pointer-events-auto flex items-center gap-2">
-          {report.score !== undefined && phase === "ready" ? (
-            <span className="flex h-9 items-center rounded-full bg-ink/70 px-3 font-mono text-[11px] tabular-nums tracking-[0.14em] text-fog backdrop-blur">
-              {report.label ?? report.score}
-            </span>
-          ) : null}
           <button
             onClick={toggleMute}
             className="tappable flex h-9 w-9 items-center justify-center rounded-full bg-ink/70 font-mono text-[11px] text-fog backdrop-blur transition-colors hover:text-chalk"

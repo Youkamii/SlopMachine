@@ -29,12 +29,26 @@ const HITBOX = 3.2;
 const GRAZE_RADIUS = 30;
 /** Seconds a bullet must wait before it can be grazed again. */
 const REGRAZE_DELAY = 0.45;
-const CHARGE_PER_GRAZE = 0.055;
+/** Ten grazes to a beam. Rare enough to feel earned, common enough to chase. */
+const CHARGE_PER_GRAZE = 0.1;
 const BEAM_DURATION = 0.42;
 const BEAM_HALF_WIDTH = 46;
-/** Saturation gained per graze and lost per second of playing it safe. */
-const SAT_PER_GRAZE = 0.028;
-const SAT_DECAY = 0.11;
+
+/**
+ * Saturation economy — this is the whole game, so the numbers matter.
+ *
+ * Decay is per second; gain is per graze and scales with the current combo.
+ * At roughly two grazes per second the world slowly warms; at five it floods.
+ * Stop grazing and it drains back to grey in about twenty seconds.
+ *
+ * The first tuning pass had decay at 0.11/s against 0.028/graze, which meant
+ * a competent run still ended at 4% colour — the central mechanic could not
+ * actually be seen. Playtesting caught it; the ratio is now inverted.
+ */
+const SAT_PER_GRAZE = 0.05;
+const SAT_DECAY = 0.05;
+/** Chained grazes are worth more, up to this multiplier. */
+const SAT_COMBO_MAX = 1.8;
 
 const MAX_BULLETS = 1400;
 const MAX_BLOOMS = 56;
@@ -201,7 +215,9 @@ class Grazefield implements GameInstance {
     this.combo = 0;
     this.comboTimer = 0;
     this.tension = 0;
-    this.spawnTimer = 0.9;
+    // Breathing room before the first wave. Dropping a pattern on someone who
+    // has not found their cursor yet reads as an unfair game, not a hard one.
+    this.spawnTimer = 1.7;
     this.waveIndex = 0;
     this.emitters.length = 0;
     for (const b of this.bullets) b.alive = false;
@@ -370,6 +386,20 @@ class Grazefield implements GameInstance {
       if (edge === 0) { x = -40; y = r.range(0, this.h); }
       else if (edge === 1) { x = this.w + 40; y = r.range(0, this.h); }
       else { x = r.range(0, this.w); y = -40; }
+    }
+
+    // Never materialise a radial emitter on top of the player. A wave that
+    // spawns inside your hitbox is not difficulty, it is a coin flip.
+    if (name === "ring" || name === "spiral" || name === "aimed") {
+      const MIN_DIST = 240;
+      const dx = x - this.px;
+      const dy = y - this.py;
+      const d = Math.hypot(dx, dy);
+      if (d < MIN_DIST) {
+        const a = d < 1 ? r.angle() : Math.atan2(dy, dx);
+        x = clamp(this.px + Math.cos(a) * MIN_DIST, 30, this.w - 30);
+        y = clamp(this.py + Math.sin(a) * MIN_DIST, 30, this.h * 0.55);
+      }
     }
 
     const base: Emitter = {
@@ -582,7 +612,8 @@ class Grazefield implements GameInstance {
     this.grazes++;
     this.combo++;
     this.comboTimer = 1.4;
-    this.saturation = clamp01(this.saturation + SAT_PER_GRAZE);
+    const comboBoost = Math.min(SAT_COMBO_MAX, 1 + this.combo * 0.08);
+    this.saturation = clamp01(this.saturation + SAT_PER_GRAZE * comboBoost);
     this.charge = clamp01(this.charge + CHARGE_PER_GRAZE);
 
     this.addBloom(b.x, b.y, b.hue);
@@ -964,22 +995,26 @@ class Grazefield implements GameInstance {
     const t = this.titleTime;
     const cx = w / 2;
 
-    // Demo bullets drifting behind the title, so the page is never static.
+    // Demo bullets orbiting behind the title. The ring is deliberately wider
+    // than the text block so they frame the words instead of sitting on top
+    // of them — a title you have to read around is a title nobody reads.
+    const ringW = Math.max(w * 0.46, 300);
+    const ringH = Math.max(h * 0.3, 150);
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     for (let i = 0; i < 26; i++) {
       const a = (i / 26) * TAU + t * 0.32;
-      const rad = 120 + Math.sin(t * 0.9 + i) * 46;
-      const x = cx + Math.cos(a) * rad * 1.5;
-      const y = h * 0.42 + Math.sin(a) * rad * 0.55;
+      const wobble = 1 + Math.sin(t * 0.9 + i) * 0.09;
+      const x = cx + Math.cos(a) * ringW * wobble;
+      const y = h * 0.44 + Math.sin(a) * ringH * wobble;
       const g = ctx.createRadialGradient(x, y, 0, x, y, 14);
-      g.addColorStop(0, "rgba(255,255,255,0.4)");
+      g.addColorStop(0, "rgba(255,255,255,0.32)");
       g.addColorStop(1, "rgba(255,255,255,0)");
       ctx.fillStyle = g;
       ctx.fillRect(x - 14, y - 14, 28, 28);
       ctx.beginPath();
-      ctx.arc(x, y, 3.4, 0, TAU);
-      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.arc(x, y, 3.2, 0, TAU);
+      ctx.fillStyle = "rgba(255,255,255,0.75)";
       ctx.fill();
     }
     ctx.restore();
