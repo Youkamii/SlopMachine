@@ -152,4 +152,22 @@ export const ALEX_GAMES: GameMeta[] = [
     released: "2026-08-08",
     sessionSeconds: 240,
   },
+  {
+    slug: "shunt",
+    title: "Shunt",
+    tagline: "You do not move. The row you stand in moves.",
+    description:
+      "A turn-based grid roguelite where pressing a direction shifts your entire row or column one cell, carrying you, the enemies and everything else along like a slice of a Rubik's cube. Anything pushed past the edge is crushed — that is how you kill, and how you die. You are not walking a floor, you are operating one.",
+    tags: ["roguelite", "strategy", "puzzle"],
+    author: "alex",
+    difficulty: 3,
+    controls: {
+      desktop: "Arrows or WASD. Edge arrows mark what gets crushed.",
+      mobile: "Swipe in any direction.",
+    },
+    accent: "#f5c518",
+    bg: "#1c1c1e",
+    released: "2026-08-08",
+    sessionSeconds: 200,
+  },
 ];

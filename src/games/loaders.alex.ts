@@ -17,4 +17,5 @@ export const ALEX_LOADERS: Record<string, GameLoader> = {
   "friendly-fire": () => import("./friendly-fire/game"),
   kessler: () => import("./kessler/game"),
   ostinato: () => import("./ostinato/game"),
+  shunt: () => import("./shunt/game"),
 };
