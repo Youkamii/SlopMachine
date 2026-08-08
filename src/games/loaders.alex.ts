@@ -29,4 +29,7 @@ export const ALEX_LOADERS: Record<string, GameLoader> = {
   sunder: () => import("./sunder/game"),
   spire: () => import("./spire/game"),
   swingshot: () => import("./swingshot/game"),
+  redline: () => import("./redline/game"),
+  hollowking: () => import("./hollowking/game"),
+  pulseway: () => import("./pulseway/game"),
 };
