@@ -26,4 +26,7 @@ export const ALEX_LOADERS: Record<string, GameLoader> = {
   lodestone: () => import("./lodestone/game"),
   metronaut: () => import("./metronaut/game"),
   swarmfall: () => import("./swarmfall/game"),
+  sunder: () => import("./sunder/game"),
+  spire: () => import("./spire/game"),
+  swingshot: () => import("./swingshot/game"),
 };
